@@ -1,6 +1,3 @@
-const APIkey = '9e2b6cc1a616c0c2e3112dad43e998d5';
-var geoCodeURL = 'http://api.openweathermap.org/geo/1.0/direct?q='
-
 // country lists with their code reference from https://gist.github.com/incredimike/1469814
 const countryListAlpha2 = {
     "AF": "Afghanistan",
@@ -254,6 +251,10 @@ const countryListAlpha2 = {
     "AX": "Åland Islands"
 };
 
+const APIkey = '9e2b6cc1a616c0c2e3112dad43e998d5';
+var geoCodeURL = 'http://api.openweathermap.org/geo/1.0/direct?q='
+var dashboardDiv = $("#dashboard")
+
 
 var submitButt = $("button[type='submit']");
 
@@ -261,12 +262,12 @@ submitButt.on("click", handleSearchCity);
 
 
 function getCoordinates(url) {
+    deleteContent($('.dashboard'));
     fetch(url)
     .then(function (response) {
         if (response.ok) {
             response.json().then(function (data) {
-            console.log(data[0])
-            return data[0];
+            displayCities(data);
         });
         } else {
             alert('Error: ' + response.statusText);
@@ -277,12 +278,42 @@ function getCoordinates(url) {
     });
 }
 
+function getCityWeather(url) {
+    fetch(url)
+    .then(function (response) {
+        if (response.ok) {
+            response.json().then(function (data) {
+            displayCities(data);
+        });
+        } else {
+            alert('Error: ' + response.message);
+        }
+    })
+    .catch(function (error) {
+        alert('Unable to connect to OpenWeather');
+    });
+}
+
+function displayCities(cities) {
+    dashboardDiv.empty();
+    cities.forEach(city => {
+        var newDiv = $("<div class='city'>")
+        var newCity = (city.state != undefined) ? 
+        $("<h3>" + city.name + " from " + city.state + " in " + countryListAlpha2[city.country] + "</h3>") :
+        $("<h3>" + city.name + " in " + countryListAlpha2[city.country] + "</h3>") 
+        newDiv.append(newCity);
+        dashboardDiv.append(newDiv);
+    })
+}
+
 function handleSearchCity(event) {
     event.preventDefault();
+    deleteContent();
+    console.log(dashboardDiv);
     var cityName = $('#CityName').val().trim();
     if (cityName !== "" ) {
-        var fetchurl = geoCodeURL + cityName + "&appid=" + APIkey;
-        var cityCoor = getCoordinates(fetchurl);
-        
+        var fetchurl = geoCodeURL + cityName + "&limit=5&appid=" + APIkey;
+        getCoordinates(fetchurl);
     }
 }
+
