@@ -254,6 +254,7 @@ const countryListAlpha2 = {
 };
 
 const APIkey = '9e2b6cc1a616c0c2e3112dad43e998d5';
+const APPkey = 'aac80b756ee64f36ad7fee54566166be'
 var geoCodeURL = 'http://api.openweathermap.org/geo/1.0/direct?q='
 var dashboardDiv = $("#dashboard")
 var submitButt = $("button[type='submit']");
@@ -289,17 +290,41 @@ function displayCities(cities) {
     })
 }
 
+
 function handleSelectWeather(event) {
     var index = $(event.target).parent().index();
     console.log(searchCities[index]);
     dashboardDiv.empty();
-    var url = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[index].lat +'&lon=' + searchCities[index].lon + '&appid=' + APIkey + "&units=metric";
-    fetch()
+    var weatherurl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[index].lat +'&lon=' + searchCities[index].lon + '&appid=' + APIkey + "&units=metric";
+    // var timezoneurl = 'https://timeapi.io/api/Time/current/coordinate?latitude=' + searchCities[index].lat.toFixed(2) + '&longitude=' + searchCities[index].lon.toFixed(2);
+    var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[index].lat.toFixed(2) + "," + searchCities[index].lon.toFixed(2);
+    getTimeZone(timezoneurl, weatherurl, getWeatherforecast);
+}   
+
+function getTimeZone(url, weatherurl, getWeatherforecast) {
     fetch(url)
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
-                renderCityWeather(data);
+                console.log(data)
+                getWeatherforecast(weatherurl, data.timezone_location);
+            })}
+        else {
+            console.log("<alert>Error: " + response.message + "</alert>");
+        }
+    })
+    .catch(function(error) {
+        console.log("<alert>Error: Unable to connect to TimeZone</alert>");
+    })
+}
+
+function getWeatherforecast(url, timezone) {
+    fetch(url)
+    .then((response) => {
+        if(response.ok) {
+            response.json().then((data) => {
+                console.log(timezone);
+                renderCityWeather(data, timezone);
             })
         }
         else {
@@ -309,17 +334,13 @@ function handleSelectWeather(event) {
     .catch(function(error) {
         dashboardDiv.append("<alert>Error: Unable to connect to OpenWeather</alert>");
     })
-}   
-
-function getTimeZone(url) {
-    
 }
 
-function renderCityWeather(weatherdata) {
+function renderCityWeather(weatherdata, timezone) {
     console.log(weatherdata);
     weatherdata.list.forEach((hour) => {
         var newDiv = $("<div class='present'>");
-        var cityName = $("<h3>" + weatherdata.city.name + " in " + countryListAlpha2[weatherdata.city.country] + " (" + dayjs.unix(hour.dt).format('D/MM/YYYY, HH:mm:ss') + ")" + "</h3>")
+        var cityName = $("<h3>" + weatherdata.city.name + " in " + countryListAlpha2[weatherdata.city.country] + " (" + dayjs.unix(hour.dt).tz(timezone).format('D/MM/YYYY, HH:mm:ss') + ")" + "</h3>")
         var temp = $("<p>Temp: " + Math.floor(hour.main.temp) + "&deg;C</p>");
         var wind = $("<p>Wind: " + hour.wind.speed + "km/h" + "</p>");
         var humid = $("<p>Humidity: " + hour.main.humidity + "%" + "</p>");
