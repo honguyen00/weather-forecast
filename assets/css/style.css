@@ -44,11 +44,12 @@ h4,
 h5,
 h6 {
   font-weight: 700;
-  line-height: 1.5;
+  line-height: 1.1;
 }
 
 header {
     background-image: linear-gradient(180deg, var(--blue), var(--east-bay));
+    margin-bottom: 3rem;
 }
 
 h1 {
@@ -59,6 +60,7 @@ h1 {
 
 h2 {
     font-size: 3rem;
+    margin: 0;
 }
 
 h3 {
@@ -85,4 +87,20 @@ button[type='submit'] {
     line-height: 2rem;
     background-color: var(--green);
     color: var(--white);
+}
+
+#dashboard {
+    display: flex;
+    flex-direction: column;
+    row-gap: 3rem;
+}
+
+.city {
+    color: var(--green);
+    background-color: var(--light-purple);
+    font-size: 2rem;
+}
+
+.city:hover {
+    cursor:pointer;
 }

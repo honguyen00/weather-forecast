@@ -29,9 +29,9 @@
         <h1 class="center py-3">Weather Dashboard</h1>
     </header>
     <div class="main-container m-3 row">
-        <section class="side-bar col-6 col-lg-4">
+        <section class="side-bar col-5 col-lg-3">
             <form>
-            <h2 class="form-label">Search for a City:</h2>
+            <h2 class="form-label">Search for a city:</h2>
             <input type="text" class="form-control form-control-lg" id='CityName' placeholder="City name"></input>
             <button type="submit" class="form-control form-control-lg my-4">Search</button>
             </form>
@@ -39,15 +39,12 @@
             <div class="history text-style-italic">No search history!</div>
         </section>
         <section class="dashboard col-6 col-lg-8 flex-grow-1" id="dashboard">
-            <div class="city"><h3>Hanoi in Viet Nam</h3></div>
-            <div class="city"><h3>Hanoi in Viet Nam</h3></div>
-            <div class="city"><h3>Hanoi in Viet Nam</h3></div>
-            <div class="city"><h3>Hanoi in Viet Nam</h3></div>
         </section>
     </div>
-
     <!-- jquery -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
     <!-- dayjs -->
     <script
       src="https://cdn.jsdelivr.net/npm/dayjs@1.11.3/dayjs.min.js"

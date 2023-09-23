@@ -1,3 +1,5 @@
+dayjs.extend(window.dayjs_plugin_utc)
+dayjs.extend(window.dayjs_plugin_timezone)
 // country lists with their code reference from https://gist.github.com/incredimike/1469814
 const countryListAlpha2 = {
     "AF": "Afghanistan",
@@ -31,7 +33,7 @@ const countryListAlpha2 = {
     "BW": "Botswana",
     "BV": "Bouvet Island",
     "BR": "Brazil",
-    "IO": "British Indian Ocean Territory (the)",
+    "IO": "(the) British Indian Ocean Territory",
     "BN": "Brunei Darussalam",
     "BG": "Bulgaria",
     "BF": "Burkina Faso",
@@ -40,18 +42,18 @@ const countryListAlpha2 = {
     "KH": "Cambodia",
     "CM": "Cameroon",
     "CA": "Canada",
-    "KY": "Cayman Islands (the)",
-    "CF": "Central African Republic (the)",
+    "KY": "(the) Cayman Islands",
+    "CF": "(the) Central African Republic ",
     "TD": "Chad",
     "CL": "Chile",
     "CN": "China",
     "CX": "Christmas Island",
-    "CC": "Cocos (Keeling) Islands (the)",
+    "CC": "(the) Cocos (Keeling) Islands ",
     "CO": "Colombia",
-    "KM": "Comoros (the)",
-    "CD": "Congo (the Democratic Republic of the)",
-    "CG": "Congo (the)",
-    "CK": "Cook Islands (the)",
+    "KM": "(the) Comoros ",
+    "CD": "(the Democratic Republic of the) Congo ",
+    "CG": "(the) Congo ",
+    "CK": "(the) Cook Islands ",
     "CR": "Costa Rica",
     "HR": "Croatia",
     "CU": "Cuba",
@@ -62,7 +64,7 @@ const countryListAlpha2 = {
     "DK": "Denmark",
     "DJ": "Djibouti",
     "DM": "Dominica",
-    "DO": "Dominican Republic (the)",
+    "DO": "(the) Dominican Republic ",
     "EC": "Ecuador",
     "EG": "Egypt",
     "SV": "El Salvador",
@@ -71,16 +73,16 @@ const countryListAlpha2 = {
     "EE": "Estonia",
     "SZ": "Eswatini",
     "ET": "Ethiopia",
-    "FK": "Falkland Islands (the) [Malvinas]",
-    "FO": "Faroe Islands (the)",
+    "FK": "(the) Falkland Islands [Malvinas]",
+    "FO": "(the) Faroe Islands ",
     "FJ": "Fiji",
     "FI": "Finland",
     "FR": "France",
     "GF": "French Guiana",
     "PF": "French Polynesia",
-    "TF": "French Southern Territories (the)",
+    "TF": "(the) French Southern Territories ",
     "GA": "Gabon",
-    "GM": "Gambia (the)",
+    "GM": "(the) Gambia ",
     "GE": "Georgia",
     "DE": "Germany",
     "GH": "Ghana",
@@ -97,14 +99,14 @@ const countryListAlpha2 = {
     "GY": "Guyana",
     "HT": "Haiti",
     "HM": "Heard Island and McDonald Islands",
-    "VA": "Holy See (the)",
+    "VA": "(the) Holy See ",
     "HN": "Honduras",
     "HK": "Hong Kong",
     "HU": "Hungary",
     "IS": "Iceland",
     "IN": "India",
     "ID": "Indonesia",
-    "IR": "Iran (Islamic Republic of)",
+    "IR": "(Islamic Republic of) Iran ",
     "IQ": "Iraq",
     "IE": "Ireland",
     "IM": "Isle of Man",
@@ -117,11 +119,11 @@ const countryListAlpha2 = {
     "KZ": "Kazakhstan",
     "KE": "Kenya",
     "KI": "Kiribati",
-    "KP": "Korea (the Democratic People's Republic of)",
-    "KR": "Korea (the Republic of)",
+    "KP": "(the Democratic People's Republic of) Korea ",
+    "KR": "(the Republic of) Korea ",
     "KW": "Kuwait",
     "KG": "Kyrgyzstan",
-    "LA": "Lao People's Democratic Republic (the)",
+    "LA": "(the) Lao People's Democratic Republic",
     "LV": "Latvia",
     "LB": "Lebanon",
     "LS": "Lesotho",
@@ -137,14 +139,14 @@ const countryListAlpha2 = {
     "MV": "Maldives",
     "ML": "Mali",
     "MT": "Malta",
-    "MH": "Marshall Islands (the)",
+    "MH": "(the) Marshall Islands",
     "MQ": "Martinique",
     "MR": "Mauritania",
     "MU": "Mauritius",
     "YT": "Mayotte",
     "MX": "Mexico",
-    "FM": "Micronesia (Federated States of)",
-    "MD": "Moldova (the Republic of)",
+    "FM": "(Federated States of) Micronesia",
+    "MD": "(the Republic of) Moldova",
     "MC": "Monaco",
     "MN": "Mongolia",
     "ME": "Montenegro",
@@ -155,7 +157,7 @@ const countryListAlpha2 = {
     "NA": "Namibia",
     "NR": "Nauru",
     "NP": "Nepal",
-    "NL": "Netherlands (the)",
+    "NL": "(the) Netherlands",
     "NC": "New Caledonia",
     "NZ": "New Zealand",
     "NI": "Nicaragua",
@@ -163,7 +165,7 @@ const countryListAlpha2 = {
     "NG": "Nigeria",
     "NU": "Niue",
     "NF": "Norfolk Island",
-    "MP": "Northern Mariana Islands (the)",
+    "MP": "(the) Northern Mariana Islands",
     "NO": "Norway",
     "OM": "Oman",
     "PK": "Pakistan",
@@ -173,7 +175,7 @@ const countryListAlpha2 = {
     "PG": "Papua New Guinea",
     "PY": "Paraguay",
     "PE": "Peru",
-    "PH": "Philippines (the)",
+    "PH": "(the) Philippines",
     "PN": "Pitcairn",
     "PL": "Poland",
     "PT": "Portugal",
@@ -181,7 +183,7 @@ const countryListAlpha2 = {
     "QA": "Qatar",
     "MK": "Republic of North Macedonia",
     "RO": "Romania",
-    "RU": "Russian Federation (the)",
+    "RU": "(the) Russian Federation",
     "RW": "Rwanda",
     "RE": "Réunion",
     "BL": "Saint Barthélemy",
@@ -210,7 +212,7 @@ const countryListAlpha2 = {
     "SS": "South Sudan",
     "ES": "Spain",
     "LK": "Sri Lanka",
-    "SD": "Sudan (the)",
+    "SD": "(the) Sudan",
     "SR": "Suriname",
     "SJ": "Svalbard and Jan Mayen",
     "SE": "Sweden",
@@ -228,14 +230,14 @@ const countryListAlpha2 = {
     "TN": "Tunisia",
     "TR": "Turkey",
     "TM": "Turkmenistan",
-    "TC": "Turks and Caicos Islands (the)",
+    "TC": "(the) Turks and Caicos Islands",
     "TV": "Tuvalu",
     "UG": "Uganda",
     "UA": "Ukraine",
-    "AE": "United Arab Emirates (the)",
-    "GB": "United Kingdom of Great Britain and Northern Ireland (the)",
-    "UM": "United States Minor Outlying Islands (the)",
-    "US": "United States of America (the)",
+    "AE": "(the) United Arab Emirates ",
+    "GB": "(the) United Kingdom of Great Britain and Northern Ireland",
+    "UM": "(the) United States Minor Outlying Islands",
+    "US": "(the) United States of America",
     "UY": "Uruguay",
     "UZ": "Uzbekistan",
     "VU": "Vanuatu",
@@ -254,35 +256,16 @@ const countryListAlpha2 = {
 const APIkey = '9e2b6cc1a616c0c2e3112dad43e998d5';
 var geoCodeURL = 'http://api.openweathermap.org/geo/1.0/direct?q='
 var dashboardDiv = $("#dashboard")
-
-
 var submitButt = $("button[type='submit']");
-
-submitButt.on("click", handleSearchCity);
-
+var searchCities;
+var timezone;
 
 function getCoordinates(url) {
-    deleteContent($('.dashboard'));
     fetch(url)
     .then(function (response) {
         if (response.ok) {
             response.json().then(function (data) {
-            displayCities(data);
-        });
-        } else {
-            alert('Error: ' + response.statusText);
-        }
-    })
-    .catch(function (error) {
-        alert('Unable to connect to OpenWeather');
-    });
-}
-
-function getCityWeather(url) {
-    fetch(url)
-    .then(function (response) {
-        if (response.ok) {
-            response.json().then(function (data) {
+            searchCities = data;
             displayCities(data);
         });
         } else {
@@ -299,17 +282,55 @@ function displayCities(cities) {
     cities.forEach(city => {
         var newDiv = $("<div class='city'>")
         var newCity = (city.state != undefined) ? 
-        $("<h3>" + city.name + " from " + city.state + " in " + countryListAlpha2[city.country] + "</h3>") :
-        $("<h3>" + city.name + " in " + countryListAlpha2[city.country] + "</h3>") 
+        $("<h2>" + city.name + ", " + city.state + " in " + countryListAlpha2[city.country] + "</h2>") :
+        $("<h2>" + city.name + " in " + countryListAlpha2[city.country] + "</h2>") 
         newDiv.append(newCity);
         dashboardDiv.append(newDiv);
     })
 }
 
+function handleSelectWeather(event) {
+    var index = $(event.target).parent().index();
+    console.log(searchCities[index]);
+    dashboardDiv.empty();
+    var url = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[index].lat +'&lon=' + searchCities[index].lon + '&appid=' + APIkey + "&units=metric";
+    fetch()
+    fetch(url)
+    .then((response) => {
+        if(response.ok) {
+            response.json().then((data) => {
+                renderCityWeather(data);
+            })
+        }
+        else {
+            dashboardDiv.append("<alert>Error: " + response.message + "</alert>");
+        }
+    })
+    .catch(function(error) {
+        dashboardDiv.append("<alert>Error: Unable to connect to OpenWeather</alert>");
+    })
+}   
+
+function getTimeZone(url) {
+    
+}
+
+function renderCityWeather(weatherdata) {
+    console.log(weatherdata);
+    weatherdata.list.forEach((hour) => {
+        var newDiv = $("<div class='present'>");
+        var cityName = $("<h3>" + weatherdata.city.name + " in " + countryListAlpha2[weatherdata.city.country] + " (" + dayjs.unix(hour.dt).format('D/MM/YYYY, HH:mm:ss') + ")" + "</h3>")
+        var temp = $("<p>Temp: " + Math.floor(hour.main.temp) + "&deg;C</p>");
+        var wind = $("<p>Wind: " + hour.wind.speed + "km/h" + "</p>");
+        var humid = $("<p>Humidity: " + hour.main.humidity + "%" + "</p>");
+        newDiv.append(cityName, temp, wind, humid);
+        dashboardDiv.append(newDiv);
+    })
+}
+
+
 function handleSearchCity(event) {
     event.preventDefault();
-    deleteContent();
-    console.log(dashboardDiv);
     var cityName = $('#CityName').val().trim();
     if (cityName !== "" ) {
         var fetchurl = geoCodeURL + cityName + "&limit=5&appid=" + APIkey;
@@ -317,3 +338,5 @@ function handleSearchCity(event) {
     }
 }
 
+submitButt.on("click", handleSearchCity);
+dashboardDiv.on("click", ".city", handleSelectWeather)
