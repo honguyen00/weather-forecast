@@ -11,6 +11,7 @@
     --gold: #EBC799;
     --light-purple: #D8CBD8;
     --cumin: #8B4724;
+    --white: #F2F2F4;
     --font-family-sans-serif: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
     --font-family-monospace: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
     --font-family-merriweather: 'Merriweather';
@@ -33,7 +34,7 @@ body {
     font-size: 1.5rem;
     line-height: 1.5;
     color: var(--cumin);
-    background-color: var(--light-purple);
+    background-color: var(--white);
 }
 
 h1,
@@ -43,24 +44,25 @@ h4,
 h5,
 h6 {
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.5;
+}
+
+header {
+    background-image: linear-gradient(180deg, var(--blue), var(--east-bay));
 }
 
 h1 {
-    font-size: 5rem;
-    color: var(--gold);
-    padding-left: 10rem;
-    background-color: var(--brown);
-    transition: all 0.5s ease-in;
+    font-size: 4rem;
+    color: var(--white);
+    text-align: center;
 }
 
 h2 {
-    font-size: 3.5rem;
-    color: var(--black);
+    font-size: 3rem;
 }
 
 h3 {
-    font-size: 3rem;
+    font-size: 2.5rem;
 }
 
 h4 {
@@ -70,4 +72,17 @@ h4 {
 p {
     margin-bottom: 2rem;
     font-size: 2.5rem;
+}
+
+input[type='text'] {
+    border-radius: 1rem;
+    line-height: 3rem;
+    font-size: 2rem;
+}
+
+button[type='submit'] {
+    border-radius: 1rem;
+    line-height: 2rem;
+    background-color: var(--green);
+    color: var(--white);
 }
