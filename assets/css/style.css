@@ -1,0 +1,73 @@
+/* Declare all variables for later use */
+:root {
+    --blue:#44536A;
+    --east-bay:#4C537D;
+    --gray: #C9DCE7;
+    --brown: #A36041;
+    --outer-space: #33393f;
+    --bright-turquoise: #2aefcb;
+    --purple: #A031E9;
+    --green: #2D5935;
+    --gold: #EBC799;
+    --light-purple: #D8CBD8;
+    --cumin: #8B4724;
+    --font-family-sans-serif: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    --font-family-monospace: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    --font-family-merriweather: 'Merriweather';
+}
+
+/* styling for when text is selected */
+::selection {
+    background-color: var(--bright-turquoise);
+    color: var(--outer-space);
+}
+
+/* =========================================================== */
+/* set up font for the whole site */
+html {
+    font-size: 62.5%;
+}
+
+body {
+    font-family: var(--font-family-merriweather);
+    font-size: 1.5rem;
+    line-height: 1.5;
+    color: var(--cumin);
+    background-color: var(--light-purple);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+h1 {
+    font-size: 5rem;
+    color: var(--gold);
+    padding-left: 10rem;
+    background-color: var(--brown);
+    transition: all 0.5s ease-in;
+}
+
+h2 {
+    font-size: 3.5rem;
+    color: var(--black);
+}
+
+h3 {
+    font-size: 3rem;
+}
+
+h4 {
+    font-size: 2.5rem;
+}
+
+p {
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+}
