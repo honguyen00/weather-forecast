@@ -259,6 +259,7 @@ var geoCodeURL = 'http://api.openweathermap.org/geo/1.0/direct?q='
 var dashboardDiv = $("#dashboard")
 var submitButt = $("button[type='submit']");
 var searchCities;
+var searchIndex;
 var timezone;
 
 function getCoordinates(url) {
@@ -292,13 +293,13 @@ function displayCities(cities) {
 
 
 function handleSelectWeather(event) {
-    var index = $(event.target).parent().index();
-    console.log(searchCities[index]);
+    searchIndex = $(event.target).parent().index();
     dashboardDiv.empty();
-    var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[index].lat +'&lon=' + searchCities[index].lon + '&appid=' + APIkey + "&units=metric";
-    var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[index].lat.toFixed(2) + "," + searchCities[index].lon.toFixed(2);
-    var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[index].lat +"&lon="+ searchCities[index].lon + "&appid=" + APIkey + "&units=metric";
+    var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat +'&lon=' + searchCities[searchIndex].lon + '&appid=' + APIkey + "&units=metric";
+    var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[searchIndex].lat.toFixed(2) + "," + searchCities[searchIndex].lon.toFixed(2);
+    var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat +"&lon="+ searchCities[searchIndex].lon + "&appid=" + APIkey + "&units=metric";
     getTimeZone(timezoneurl, forecasturl, currenturl, getWeatherForecast);
+    saveSearchCity();
 }   
 
 function getTimeZone(url, forecasturl, currenturl) {
@@ -323,7 +324,6 @@ function getWeatherForecast(url) {
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
-                console.log(data);
                 renderCityWeather(data);
             })
         }
@@ -341,7 +341,6 @@ function getWeatherCurrent(currenturl, forecasturl) {
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
-                console.log(data);
                 renderCityWeather(data);
                 getWeatherForecast(forecasturl);
             })
@@ -356,28 +355,49 @@ function getWeatherCurrent(currenturl, forecasturl) {
 }
 
 function renderCityWeather(weatherdata) {
-    console.log(timezone);
+    console.log(searchCities[searchIndex]);
+    if (searchCities[searchIndex].state) {
+        var cityName = "<h3>" + searchCities[searchIndex].name + " in " + searchCities[searchIndex].state + "</h3>";
+    } else {
+        var cityName = "<h3>" + searchCities[searchIndex].name + " in " + countryListAlpha2[searchCities[searchIndex].country] + "</h3>";
+    }
+    
     if(weatherdata.list) {
+        var flexContainer = $("<div class='flex-container'>")
         weatherdata.list.forEach((hour) => {
         var newDiv = $("<div class='forecast'>");
-        var cityName = $("<h3>" + weatherdata.city.name + " in " + countryListAlpha2[weatherdata.city.country] + " (" + dayjs.unix(hour.dt).tz(timezone.timezone_location).format('D/MM/YYYY, HH:mm:00') + ")" + "</h3>")
+        var cityHead = $(cityName + " <h4>(" + dayjs.unix(hour.dt).tz(timezone.timezone_location).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
+        var icon = $('<i><img src=https://openweathermap.org/img/wn/' + hour.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(hour.main.temp) + "&deg;C</p>");
         var wind = $("<p>Wind: " + hour.wind.speed + "km/h" + "</p>");
         var humid = $("<p>Humidity: " + hour.main.humidity + "%" + "</p>");
-        newDiv.append(cityName, temp, wind, humid);
-        dashboardDiv.append(newDiv);
-    })
-    } else {
+        var description = $("<p>Description: " + hour.weather[0].description + "</p>")
+        newDiv.append(cityHead, icon, description, temp, wind, humid);
+        flexContainer.append(newDiv);
+        }) 
+        dashboardDiv.append($("<h3>5-Day Forecast:</h3>"), flexContainer);
+    }
+     else {
         var newDiv = $("<div class='present'>");
-        var cityName = $("<h3>" + weatherdata.name + " in " + countryListAlpha2[weatherdata.sys.country] + " (" + dayjs.unix(weatherdata.dt).tz(timezone.timezone_location).format('D/MM/YYYY, HH:mm:00') + ")" + "</h3>")
+        var cityHead = $(cityName + " <h4>(recent update: " + dayjs.unix(weatherdata.dt).tz(timezone.timezone_location).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
+        var icon = $('<i><img src=https://openweathermap.org/img/wn/' + weatherdata.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(weatherdata.main.temp) + "&deg;C</p>");
+        var description = $("<p>Description: " + weatherdata.weather[0].description + "</p>")
         var wind = $("<p>Wind: " + weatherdata.wind.speed + "km/h" + "</p>");
         var humid = $("<p>Humidity: " + weatherdata.main.humidity + "%" + "</p>");
-        newDiv.append(cityName, temp, wind, humid);
+        newDiv.append(cityHead, icon, description, temp, wind, humid);
         dashboardDiv.append(newDiv);
     }
 }
 
+function saveSearchCity() {
+    var historyDiv = $(".history");
+
+}
+
+function setLocalStorage() {
+    
+}
 
 function handleSearchCity(event) {
     event.preventDefault();
