@@ -258,6 +258,7 @@ const APPkey = 'aac80b756ee64f36ad7fee54566166be'
 var geoCodeURL = 'http://api.openweathermap.org/geo/1.0/direct?q='
 var dashboardDiv = $("#dashboard")
 var submitButt = $("button[type='submit']");
+var historyDiv = $(".history");
 var searchCities;
 var searchIndex;
 var timezone;
@@ -292,14 +293,25 @@ function displayCities(cities) {
 }
 
 
-function handleSelectWeather(event) {
-    searchIndex = $(event.target).parent().index();
-    dashboardDiv.empty();
-    var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat +'&lon=' + searchCities[searchIndex].lon + '&appid=' + APIkey + "&units=metric";
-    var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[searchIndex].lat.toFixed(2) + "," + searchCities[searchIndex].lon.toFixed(2);
-    var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat +"&lon="+ searchCities[searchIndex].lon + "&appid=" + APIkey + "&units=metric";
-    getTimeZone(timezoneurl, forecasturl, currenturl, getWeatherForecast);
-    saveSearchCity();
+function handleSelectWeather(event) { 
+    if (event.target.tagName.toLowerCase() === "h2") {
+        searchIndex = $(event.target).parent().index();
+        dashboardDiv.empty();
+        var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat +'&lon=' + searchCities[searchIndex].lon + '&appid=' + APIkey + "&units=metric";
+        var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[searchIndex].lat.toFixed(2) + "," + searchCities[searchIndex].lon.toFixed(2);
+        var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat +"&lon="+ searchCities[searchIndex].lon + "&appid=" + APIkey + "&units=metric";
+        saveSearchCity();
+        getTimeZone(timezoneurl, forecasturl, currenturl, getWeatherForecast);
+    } else {
+        var historyIndex = $(event.target).index();
+        var coordinates = JSON.parse(localStorage.getItem("history"))[historyIndex];
+        console.log(coordinates);
+        dashboardDiv.empty();
+        var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + coordinates.lat +'&lon=' + coordinates.lon + '&appid=' + APIkey + "&units=metric";
+        var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + coordinates.lat.toFixed(2) + "," + coordinates.lon.toFixed(2);
+        var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ coordinates.lat +"&lon="+ coordinates.lon + "&appid=" + APIkey + "&units=metric";
+        getTimeZone(timezoneurl, forecasturl, currenturl, getWeatherForecast);
+    }
 }   
 
 function getTimeZone(url, forecasturl, currenturl) {
@@ -355,14 +367,9 @@ function getWeatherCurrent(currenturl, forecasturl) {
 }
 
 function renderCityWeather(weatherdata) {
-    console.log(searchCities[searchIndex]);
-    if (searchCities[searchIndex].state) {
-        var cityName = "<h3>" + searchCities[searchIndex].name + " in " + searchCities[searchIndex].state + "</h3>";
-    } else {
-        var cityName = "<h3>" + searchCities[searchIndex].name + " in " + countryListAlpha2[searchCities[searchIndex].country] + "</h3>";
-    }
-    
+    console.log(weatherdata);
     if(weatherdata.list) {
+        var cityName = "<h3>" + weatherdata.city.name + "</h3>";
         var flexContainer = $("<div class='flex-container'>")
         weatherdata.list.forEach((hour) => {
         var newDiv = $("<div class='forecast'>");
@@ -378,6 +385,7 @@ function renderCityWeather(weatherdata) {
         dashboardDiv.append($("<h3>5-Day Forecast:</h3>"), flexContainer);
     }
      else {
+        var cityName = "<h3>" + weatherdata.name + "</h3>";
         var newDiv = $("<div class='present'>");
         var cityHead = $(cityName + " <h4>(recent update: " + dayjs.unix(weatherdata.dt).tz(timezone.timezone_location).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
         var icon = $('<i><img src=https://openweathermap.org/img/wn/' + weatherdata.weather[0].icon +'@2x.png' + '></i>')
@@ -391,12 +399,19 @@ function renderCityWeather(weatherdata) {
 }
 
 function saveSearchCity() {
-    var historyDiv = $(".history");
-
-}
-
-function setLocalStorage() {
-    
+    var name;
+    ((searchCities[searchIndex].state) ? name=searchCities[searchIndex].state : name=searchCities[searchIndex].country)
+    var historyButt = $("<button class='select-history'>" + searchCities[searchIndex].name + ", " + name + "</button>");
+    historyDiv.append(historyButt);
+    console.log(searchCities[searchIndex]);
+    if (!localStorage.getItem("history")) {
+        var savedCity = [{lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}];
+        localStorage.setItem("history", JSON.stringify(savedCity));
+    } else {
+        var savedCity = JSON.parse(localStorage.getItem("history"));
+        var newHistory = savedCity.concat([{lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}]);
+        localStorage.setItem("history", JSON.stringify(newHistory));
+    }
 }
 
 function handleSearchCity(event) {
@@ -409,4 +424,5 @@ function handleSearchCity(event) {
 }
 
 submitButt.on("click", handleSearchCity);
-dashboardDiv.on("click", ".city", handleSelectWeather)
+dashboardDiv.on("click", ".city", handleSelectWeather);
+historyDiv.on("click", ".select-history", handleSelectWeather)
