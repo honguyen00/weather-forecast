@@ -295,19 +295,19 @@ function handleSelectWeather(event) {
     var index = $(event.target).parent().index();
     console.log(searchCities[index]);
     dashboardDiv.empty();
-    var weatherurl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[index].lat +'&lon=' + searchCities[index].lon + '&appid=' + APIkey + "&units=metric";
-    // var timezoneurl = 'https://timeapi.io/api/Time/current/coordinate?latitude=' + searchCities[index].lat.toFixed(2) + '&longitude=' + searchCities[index].lon.toFixed(2);
+    var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[index].lat +'&lon=' + searchCities[index].lon + '&appid=' + APIkey + "&units=metric";
     var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[index].lat.toFixed(2) + "," + searchCities[index].lon.toFixed(2);
-    getTimeZone(timezoneurl, weatherurl, getWeatherforecast);
+    var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[index].lat +"&lon="+ searchCities[index].lon + "&appid=" + APIkey + "&units=metric";
+    getTimeZone(timezoneurl, forecasturl, currenturl, getWeatherForecast);
 }   
 
-function getTimeZone(url, weatherurl, getWeatherforecast) {
+function getTimeZone(url, forecasturl, currenturl) {
     fetch(url)
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
-                console.log(data)
-                getWeatherforecast(weatherurl, data.timezone_location);
+                timezone = data;
+                getWeatherCurrent(currenturl, forecasturl);
             })}
         else {
             console.log("<alert>Error: " + response.message + "</alert>");
@@ -318,13 +318,13 @@ function getTimeZone(url, weatherurl, getWeatherforecast) {
     })
 }
 
-function getWeatherforecast(url, timezone) {
+function getWeatherForecast(url) {
     fetch(url)
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
-                console.log(timezone);
-                renderCityWeather(data, timezone);
+                console.log(data);
+                renderCityWeather(data);
             })
         }
         else {
@@ -336,17 +336,46 @@ function getWeatherforecast(url, timezone) {
     })
 }
 
-function renderCityWeather(weatherdata, timezone) {
-    console.log(weatherdata);
-    weatherdata.list.forEach((hour) => {
-        var newDiv = $("<div class='present'>");
-        var cityName = $("<h3>" + weatherdata.city.name + " in " + countryListAlpha2[weatherdata.city.country] + " (" + dayjs.unix(hour.dt).tz(timezone).format('D/MM/YYYY, HH:mm:ss') + ")" + "</h3>")
+function getWeatherCurrent(currenturl, forecasturl) {
+    fetch(currenturl)
+    .then((response) => {
+        if(response.ok) {
+            response.json().then((data) => {
+                console.log(data);
+                renderCityWeather(data);
+                getWeatherForecast(forecasturl);
+            })
+        }
+        else {
+            dashboardDiv.append("<alert>Error: " + response.message + "</alert>");
+        }
+    })
+    .catch(function(error) {
+        dashboardDiv.append("<alert>Error: Unable to connect to OpenWeather</alert>");
+    })
+}
+
+function renderCityWeather(weatherdata) {
+    console.log(timezone);
+    if(weatherdata.list) {
+        weatherdata.list.forEach((hour) => {
+        var newDiv = $("<div class='forecast'>");
+        var cityName = $("<h3>" + weatherdata.city.name + " in " + countryListAlpha2[weatherdata.city.country] + " (" + dayjs.unix(hour.dt).tz(timezone.timezone_location).format('D/MM/YYYY, HH:mm:00') + ")" + "</h3>")
         var temp = $("<p>Temp: " + Math.floor(hour.main.temp) + "&deg;C</p>");
         var wind = $("<p>Wind: " + hour.wind.speed + "km/h" + "</p>");
         var humid = $("<p>Humidity: " + hour.main.humidity + "%" + "</p>");
         newDiv.append(cityName, temp, wind, humid);
         dashboardDiv.append(newDiv);
     })
+    } else {
+        var newDiv = $("<div class='present'>");
+        var cityName = $("<h3>" + weatherdata.name + " in " + countryListAlpha2[weatherdata.sys.country] + " (" + dayjs.unix(weatherdata.dt).tz(timezone.timezone_location).format('D/MM/YYYY, HH:mm:00') + ")" + "</h3>")
+        var temp = $("<p>Temp: " + Math.floor(weatherdata.main.temp) + "&deg;C</p>");
+        var wind = $("<p>Wind: " + weatherdata.wind.speed + "km/h" + "</p>");
+        var humid = $("<p>Humidity: " + weatherdata.main.humidity + "%" + "</p>");
+        newDiv.append(cityName, temp, wind, humid);
+        dashboardDiv.append(newDiv);
+    }
 }
 
 
