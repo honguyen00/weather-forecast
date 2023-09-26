@@ -1,3 +1,4 @@
+// link dayjs plugin to use timezone method in dayjs
 dayjs.extend(window.dayjs_plugin_utc)
 dayjs.extend(window.dayjs_plugin_timezone)
 // country lists with their code reference from https://gist.github.com/incredimike/1469814
@@ -252,122 +253,179 @@ const countryListAlpha2 = {
     "ZW": "Zimbabwe",
     "AX": "Åland Islands"
 };
-
+// openweather api key
 const APIkey = '9e2b6cc1a616c0c2e3112dad43e998d5';
-const APPkey = 'aac80b756ee64f36ad7fee54566166be'
-var geoCodeURL = 'http://api.openweathermap.org/geo/1.0/direct?q='
+// timezone api key
+const APPkey = 'aac80b756ee64f36ad7fee54566166be';
+// get document elements
 var dashboardDiv = $("#dashboard")
 var submitButt = $("button[type='submit']");
 var historyDiv = $(".history");
+// store the result from searching a city name
 var searchCities;
+// store the index value of the city that user choose from result array
 var searchIndex;
+// store the data return from getting the timezone of the selected city
 var timezone;
 
-function getCoordinates(url) {
+
+$(function() {
+    // after all html elements have been rendered, show any saved search history
+    renderHistory();
+});
+
+// function to display any saved history
+function renderHistory() {
+    var savedHistory = JSON.parse(localStorage.getItem("history"));
+    if (savedHistory) {
+        savedHistory.forEach(item => {
+            renderSavedCity(item.city[0], item.city[1]);
+        })
+    }
+}
+
+// After user search for a city name, get all potential results that can match
+function handleSearchCityNames(url) {
     fetch(url)
     .then(function (response) {
         if (response.ok) {
             response.json().then(function (data) {
             searchCities = data;
-            displayCities(data);
+            // Displaying the results from the search on the screen
+            renderSearchedCities(data);
         });
         } else {
-            alert('Error: ' + response.message);
+            dashboardDiv.append('Error: ' + response.statusText);
         }
     })
     .catch(function (error) {
-        alert('Unable to connect to OpenWeather');
+        dashboardDiv.append('Unable to connect to OpenWeather, ' + error);
     });
 }
 
-function displayCities(cities) {
+// Displaying the results from the search on the screen
+function renderSearchedCities(cities) {
     dashboardDiv.empty();
-    cities.forEach(city => {
-        var newDiv = $("<div class='city'>")
-        var newCity = (city.state != undefined) ? 
-        $("<h2>" + city.name + ", " + city.state + " in " + countryListAlpha2[city.country] + "</h2>") :
-        $("<h2>" + city.name + " in " + countryListAlpha2[city.country] + "</h2>") 
-        newDiv.append(newCity);
-        dashboardDiv.append(newDiv);
-    })
+    if (cities.length == 0) {
+        dashboardDiv.append('No search results that match!');
+    } else {
+        cities.forEach(city => {
+            var newDiv = $("<div class='city'>")
+            var newCity = (city.state != undefined) ? 
+            $("<h2>" + city.name + ", " + city.state + " in " + countryListAlpha2[city.country] + "</h2>") :
+            $("<h2>" + city.name + " in " + countryListAlpha2[city.country] + "</h2>") 
+            newDiv.append(newCity);
+            dashboardDiv.append(newDiv);
+        })
+    } 
 }
 
-
-function handleSelectWeather(event) { 
+// when user click on a city from either the searched results or history div
+function handleSelectedCity(event) { 
+    // if user click on a result from search results
     if (event.target.tagName.toLowerCase() === "h2") {
         searchIndex = $(event.target).parent().index();
         dashboardDiv.empty();
         var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat +'&lon=' + searchCities[searchIndex].lon + '&appid=' + APIkey + "&units=metric";
         var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[searchIndex].lat.toFixed(2) + "," + searchCities[searchIndex].lon.toFixed(2);
         var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat +"&lon="+ searchCities[searchIndex].lon + "&appid=" + APIkey + "&units=metric";
-        saveSearchCity();
-        getTimeZone(timezoneurl, forecasturl, currenturl, getWeatherForecast);
-    } else {
+        // store the city to history in local storage
+        handleSaveSearchedCity();
+        // get the timezone of the chosen city
+        getTimeZone(timezoneurl, forecasturl, currenturl);
+    } 
+    // user click on a city from history
+    else {
         var historyIndex = $(event.target).index();
         var coordinates = JSON.parse(localStorage.getItem("history"))[historyIndex];
-        console.log(coordinates);
         dashboardDiv.empty();
         var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + coordinates.lat +'&lon=' + coordinates.lon + '&appid=' + APIkey + "&units=metric";
         var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + coordinates.lat.toFixed(2) + "," + coordinates.lon.toFixed(2);
         var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ coordinates.lat +"&lon="+ coordinates.lon + "&appid=" + APIkey + "&units=metric";
-        getTimeZone(timezoneurl, forecasturl, currenturl, getWeatherForecast);
+        // get the timezone of the chosen city, timezone url for present use, forecasturl for fetching weather forecast api and currenturl for fetching current weather api
+        getTimeZone(timezoneurl, forecasturl, currenturl);
     }
 }   
 
+// function to store the city to history in local storage
+function handleSaveSearchedCity() {
+    var country;
+    var cityName = searchCities[searchIndex].name;
+    ((searchCities[searchIndex].state) ? country=searchCities[searchIndex].state : country=searchCities[searchIndex].country)
+    // display the history in the history div
+    renderSavedCity(cityName, country);
+    if (!localStorage.getItem("history")) {
+        var savedCity = [{city: [cityName, country], lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}];
+        localStorage.setItem("history", JSON.stringify(savedCity));
+    } else {
+        var savedCity = JSON.parse(localStorage.getItem("history"));
+        var newHistory = savedCity.concat([{city: [cityName, country], lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}]);
+        localStorage.setItem("history", JSON.stringify(newHistory));
+    }
+}
+
+// function to get the timezone of the chosen city
 function getTimeZone(url, forecasturl, currenturl) {
     fetch(url)
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
                 timezone = data;
+                // get the current weather of the chosen city
                 getWeatherCurrent(currenturl, forecasturl);
             })}
         else {
-            console.log("<alert>Error: " + response.message + "</alert>");
+            dashboardDiv.append("<p>Error: " + response.statusText + "</p>");
         }
     })
     .catch(function(error) {
-        console.log("<alert>Error: Unable to connect to TimeZone</alert>");
+        dashboardDiv.append("<p>Error: Unable to connect to TimeZone, "+  error + "</p>");
     })
 }
 
-function getWeatherForecast(url) {
-    fetch(url)
-    .then((response) => {
-        if(response.ok) {
-            response.json().then((data) => {
-                renderCityWeather(data);
-            })
-        }
-        else {
-            dashboardDiv.append("<alert>Error: " + response.message + "</alert>");
-        }
-    })
-    .catch(function(error) {
-        dashboardDiv.append("<alert>Error: Unable to connect to OpenWeather</alert>");
-    })
-}
-
+// fuction to get the current weather
 function getWeatherCurrent(currenturl, forecasturl) {
     fetch(currenturl)
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
+                // display the weather result on screen
                 renderCityWeather(data);
+                // get weather forecast
                 getWeatherForecast(forecasturl);
             })
         }
         else {
-            dashboardDiv.append("<alert>Error: " + response.message + "</alert>");
+            dashboardDiv.append("<p>Error: " + response.statusText + "</p>");
         }
     })
     .catch(function(error) {
-        dashboardDiv.append("<alert>Error: Unable to connect to OpenWeather</alert>");
+        dashboardDiv.append("<p>Error: Unable to connect to OpenWeather, " + error + "</p>");
     })
 }
 
+// function to get weather forecast
+function getWeatherForecast(url) {
+    fetch(url)
+    .then((response) => {
+        if(response.ok) {
+            response.json().then((data) => {
+                // display the weather result on screen
+                renderCityWeather(data);
+            })
+        }
+        else {
+            dashboardDiv.append("<p>Error: " + response.statusText + "</p>");
+        }
+    })
+    .catch(function(error) {
+        dashboardDiv.append("<p>Error: Unable to connect to OpenWeather, " + error + "</p>");
+    })
+}
+
+// funtion to display weather result on screen
 function renderCityWeather(weatherdata) {
-    console.log(weatherdata);
+    // if the result is from 5 day forecast
     if(weatherdata.list) {
         var cityName = "<h3>" + weatherdata.city.name + "</h3>";
         var flexContainer = $("<div class='flex-container'>")
@@ -384,10 +442,11 @@ function renderCityWeather(weatherdata) {
         }) 
         dashboardDiv.append($("<h3>5-Day Forecast:</h3>"), flexContainer);
     }
-     else {
+    // if the result is from current forecast
+    else {
         var cityName = "<h3>" + weatherdata.name + "</h3>";
         var newDiv = $("<div class='present'>");
-        var cityHead = $(cityName + " <h4>(recent update: " + dayjs.unix(weatherdata.dt).tz(timezone.timezone_location).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
+        var cityHead = $(cityName + " <h4>(most recent update: " + dayjs.unix(weatherdata.dt).tz(timezone.timezone_location).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
         var icon = $('<i><img src=https://openweathermap.org/img/wn/' + weatherdata.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(weatherdata.main.temp) + "&deg;C</p>");
         var description = $("<p>Description: " + weatherdata.weather[0].description + "</p>")
@@ -397,32 +456,24 @@ function renderCityWeather(weatherdata) {
         dashboardDiv.append(newDiv);
     }
 }
-
-function saveSearchCity() {
-    var name;
-    ((searchCities[searchIndex].state) ? name=searchCities[searchIndex].state : name=searchCities[searchIndex].country)
-    var historyButt = $("<button class='select-history'>" + searchCities[searchIndex].name + ", " + name + "</button>");
+// function to display saved cities on screen
+function renderSavedCity(city, country) {    
+    var historyButt = $("<button class='select-history'>" + city + ", " + country + "</button>");
     historyDiv.append(historyButt);
-    console.log(searchCities[searchIndex]);
-    if (!localStorage.getItem("history")) {
-        var savedCity = [{lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}];
-        localStorage.setItem("history", JSON.stringify(savedCity));
-    } else {
-        var savedCity = JSON.parse(localStorage.getItem("history"));
-        var newHistory = savedCity.concat([{lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}]);
-        localStorage.setItem("history", JSON.stringify(newHistory));
-    }
 }
 
+// function to handle when search button is clicked
 function handleSearchCity(event) {
     event.preventDefault();
     var cityName = $('#CityName').val().trim();
+    $('#CityName').val("");
     if (cityName !== "" ) {
-        var fetchurl = geoCodeURL + cityName + "&limit=5&appid=" + APIkey;
-        getCoordinates(fetchurl);
+        var fetchurl = 'http://api.openweathermap.org/geo/1.0/direct?q=' + cityName + "&limit=5&appid=" + APIkey;
+        handleSearchCityNames(fetchurl);
     }
 }
 
+// event listeners
 submitButt.on("click", handleSearchCity);
-dashboardDiv.on("click", ".city", handleSelectWeather);
-historyDiv.on("click", ".select-history", handleSelectWeather)
+dashboardDiv.on("click", ".city", handleSelectedCity);
+historyDiv.on("click", ".select-history", handleSelectedCity)
