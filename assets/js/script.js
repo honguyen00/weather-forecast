@@ -279,7 +279,7 @@ function renderHistory() {
     var savedHistory = JSON.parse(localStorage.getItem("history"));
     if (savedHistory) {
         savedHistory.forEach(item => {
-            renderSavedCity(item.city[0], item.city[1]);
+            renderSavedCity(item.city);
         })
     }
 }
@@ -324,11 +324,13 @@ function renderSearchedCities(cities) {
 function handleSelectedCity(event) { 
     // if user click on a result from search results
     if (event.target.tagName.toLowerCase() === "h2") {
+        // get the index of the chosen city from result array
         searchIndex = $(event.target).parent().index();
         dashboardDiv.empty();
-        var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat +'&lon=' + searchCities[searchIndex].lon + '&appid=' + APIkey + "&units=metric";
+        dashboardDiv.append($("<div class='loader'>"))
+        var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat.toFixed(2) +'&lon=' + searchCities[searchIndex].lon.toFixed(2) + '&appid=' + APIkey + "&units=metric";
         var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[searchIndex].lat.toFixed(2) + "," + searchCities[searchIndex].lon.toFixed(2);
-        var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat +"&lon="+ searchCities[searchIndex].lon + "&appid=" + APIkey + "&units=metric";
+        var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat.toFixed(2) +"&lon="+ searchCities[searchIndex].lon.toFixed(2) + "&appid=" + APIkey + "&units=metric";
         // store the city to history in local storage
         handleSaveSearchedCity();
         // get the timezone of the chosen city
@@ -336,11 +338,13 @@ function handleSelectedCity(event) {
     } 
     // user click on a city from history
     else {
+        //get the index of chosen city from history array in local storage
         var historyIndex = $(event.target).index();
         var coordinates = JSON.parse(localStorage.getItem("history"))[historyIndex];
         dashboardDiv.empty();
+        dashboardDiv.append($("<div class='loader'>"))
         var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + coordinates.lat +'&lon=' + coordinates.lon + '&appid=' + APIkey + "&units=metric";
-        var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + coordinates.lat.toFixed(2) + "," + coordinates.lon.toFixed(2);
+        var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + coordinates.lat + "," + coordinates.lon;
         var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ coordinates.lat +"&lon="+ coordinates.lon + "&appid=" + APIkey + "&units=metric";
         // get the timezone of the chosen city, timezone url for present use, forecasturl for fetching weather forecast api and currenturl for fetching current weather api
         getTimeZone(timezoneurl, forecasturl, currenturl);
@@ -351,16 +355,35 @@ function handleSelectedCity(event) {
 function handleSaveSearchedCity() {
     var country;
     var cityName = searchCities[searchIndex].name;
+    // if there is a state value, store state value else store country value
     ((searchCities[searchIndex].state) ? country=searchCities[searchIndex].state : country=searchCities[searchIndex].country)
-    // display the history in the history div
-    renderSavedCity(cityName, country);
+    // if there is no history
     if (!localStorage.getItem("history")) {
-        var savedCity = [{city: [cityName, country], lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}];
+        var savedCity = [{city: cityName + ", "+ country, lat: searchCities[searchIndex].lat.toFixed(2), lon: searchCities[searchIndex].lon.toFixed(2)}];
         localStorage.setItem("history", JSON.stringify(savedCity));
-    } else {
+        // display the history in the history div
+        renderSavedCity(cityName + ", " + country);
+    } 
+    // there is existing history
+    else {
+        // value to see if searched city already in history
+        var dup = false;
         var savedCity = JSON.parse(localStorage.getItem("history"));
-        var newHistory = savedCity.concat([{city: [cityName, country], lat: searchCities[searchIndex].lat, lon: searchCities[searchIndex].lon}]);
-        localStorage.setItem("history", JSON.stringify(newHistory));
+        console.log(savedCity);
+        var newItem = {city: cityName + ", "+ country, lat: searchCities[searchIndex].lat.toFixed(2), lon: searchCities[searchIndex].lon.toFixed(2)};
+        // chech each item.city in history to see if the name exists. if it is a duplicate then set value to true
+        savedCity.forEach(item => {
+            if (item.city == newItem.city) {
+                dup = true;
+                return;
+            }
+        })
+        // only when it is not a duplicate then save to history in local storage
+        if (!dup) {
+            var newHistory = savedCity.concat([newItem]);
+            renderSavedCity(cityName + ", " + country);
+            localStorage.setItem("history", JSON.stringify(newHistory));
+        }    
     }
 }
 
@@ -375,7 +398,7 @@ function getTimeZone(url, forecasturl, currenturl) {
                 getWeatherCurrent(currenturl, forecasturl);
             })}
         else {
-            dashboardDiv.append("<p>Error: " + response.statusText + "</p>");
+            dashboardDiv.append("<p>Error: " + response + "</p>");
         }
     })
     .catch(function(error) {
@@ -390,6 +413,7 @@ function getWeatherCurrent(currenturl, forecasturl) {
         if(response.ok) {
             response.json().then((data) => {
                 // display the weather result on screen
+                dashboardDiv.empty();
                 renderCityWeather(data);
                 // get weather forecast
                 getWeatherForecast(forecasturl);
@@ -426,6 +450,7 @@ function getWeatherForecast(url) {
 // funtion to display weather result on screen
 function renderCityWeather(weatherdata) {
     // if the result is from 5 day forecast
+    console.log(weatherdata);
     if(weatherdata.list) {
         var cityName = "<h3>" + weatherdata.city.name + "</h3>";
         var flexContainer = $("<div class='flex-container'>")
@@ -457,8 +482,8 @@ function renderCityWeather(weatherdata) {
     }
 }
 // function to display saved cities on screen
-function renderSavedCity(city, country) {    
-    var historyButt = $("<button class='select-history'>" + city + ", " + country + "</button>");
+function renderSavedCity(city) {    
+    var historyButt = $("<button class='select-history'>" + city + "</button>");
     historyDiv.append(historyButt);
 }
 
