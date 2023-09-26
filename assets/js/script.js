@@ -255,8 +255,6 @@ const countryListAlpha2 = {
 };
 // openweather api key
 const APIkey = '9e2b6cc1a616c0c2e3112dad43e998d5';
-// timezone api key
-const APPkey = 'aac80b756ee64f36ad7fee54566166be';
 // get document elements
 var dashboardDiv = $("#dashboard")
 var submitButt = $("button[type='submit']");
@@ -265,7 +263,7 @@ var historyDiv = $(".history");
 var searchCities;
 // store the index value of the city that user choose from result array
 var searchIndex;
-// store the data return from getting the timezone of the selected city
+// store the timezone of the chosen city
 var timezone;
 
 
@@ -329,12 +327,11 @@ function handleSelectedCity(event) {
         dashboardDiv.empty();
         dashboardDiv.append($("<div class='loader'>"))
         var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat.toFixed(2) +'&lon=' + searchCities[searchIndex].lon.toFixed(2) + '&appid=' + APIkey + "&units=metric";
-        var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + searchCities[searchIndex].lat.toFixed(2) + "," + searchCities[searchIndex].lon.toFixed(2);
         var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat.toFixed(2) +"&lon="+ searchCities[searchIndex].lon.toFixed(2) + "&appid=" + APIkey + "&units=metric";
         // store the city to history in local storage
         handleSaveSearchedCity();
-        // get the timezone of the chosen city
-        getTimeZone(timezoneurl, forecasturl, currenturl);
+        //get the current weather of chosen city
+        getWeatherCurrent(currenturl, forecasturl);
     } 
     // user click on a city from history
     else {
@@ -344,10 +341,9 @@ function handleSelectedCity(event) {
         dashboardDiv.empty();
         dashboardDiv.append($("<div class='loader'>"))
         var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + coordinates.lat +'&lon=' + coordinates.lon + '&appid=' + APIkey + "&units=metric";
-        var timezoneurl = 'https://timezone.abstractapi.com/v1/current_time?api_key=' + APPkey + '&location=' + coordinates.lat + "," + coordinates.lon;
         var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ coordinates.lat +"&lon="+ coordinates.lon + "&appid=" + APIkey + "&units=metric";
-        // get the timezone of the chosen city, timezone url for present use, forecasturl for fetching weather forecast api and currenturl for fetching current weather api
-        getTimeZone(timezoneurl, forecasturl, currenturl);
+        //get the current weather of chosen city
+        getWeatherCurrent(currenturl, forecasturl);
     }
 }   
 
@@ -369,7 +365,6 @@ function handleSaveSearchedCity() {
         // value to see if searched city already in history
         var dup = false;
         var savedCity = JSON.parse(localStorage.getItem("history"));
-        console.log(savedCity);
         var newItem = {city: cityName + ", "+ country, lat: searchCities[searchIndex].lat.toFixed(2), lon: searchCities[searchIndex].lon.toFixed(2)};
         // chech each item.city in history to see if the name exists. if it is a duplicate then set value to true
         savedCity.forEach(item => {
@@ -387,31 +382,14 @@ function handleSaveSearchedCity() {
     }
 }
 
-// function to get the timezone of the chosen city
-function getTimeZone(url, forecasturl, currenturl) {
-    fetch(url)
-    .then((response) => {
-        if(response.ok) {
-            response.json().then((data) => {
-                timezone = data;
-                // get the current weather of the chosen city
-                getWeatherCurrent(currenturl, forecasturl);
-            })}
-        else {
-            dashboardDiv.append("<p>Error: " + response + "</p>");
-        }
-    })
-    .catch(function(error) {
-        dashboardDiv.append("<p>Error: Unable to connect to TimeZone, "+  error + "</p>");
-    })
-}
-
 // fuction to get the current weather
 function getWeatherCurrent(currenturl, forecasturl) {
     fetch(currenturl)
     .then((response) => {
         if(response.ok) {
             response.json().then((data) => {
+                console.log(data);
+                timezone = data.timezone;
                 // display the weather result on screen
                 dashboardDiv.empty();
                 renderCityWeather(data);
@@ -447,16 +425,14 @@ function getWeatherForecast(url) {
     })
 }
 
-// funtion to display weather result on screen
 function renderCityWeather(weatherdata) {
     // if the result is from 5 day forecast
-    console.log(weatherdata);
     if(weatherdata.list) {
         var cityName = "<h3>" + weatherdata.city.name + "</h3>";
         var flexContainer = $("<div class='flex-container'>")
         weatherdata.list.forEach((hour) => {
         var newDiv = $("<div class='forecast'>");
-        var cityHead = $(cityName + " <h4>(" + dayjs.unix(hour.dt).tz(timezone.timezone_location).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
+        var cityHead = $(cityName + " <h4>(" + dayjs.unix(hour.dt).utcOffset(timezone / 3600).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
         var icon = $('<i><img src=https://openweathermap.org/img/wn/' + hour.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(hour.main.temp) + "&deg;C</p>");
         var wind = $("<p>Wind: " + hour.wind.speed + "km/h" + "</p>");
@@ -471,7 +447,8 @@ function renderCityWeather(weatherdata) {
     else {
         var cityName = "<h3>" + weatherdata.name + "</h3>";
         var newDiv = $("<div class='present'>");
-        var cityHead = $(cityName + " <h4>(most recent update: " + dayjs.unix(weatherdata.dt).tz(timezone.timezone_location).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
+        //use dayjs utc offset together with the saved timezone(offset in seconds so we devide by 3600 to get offset in hours) value to convert time to local time of chosen city
+        var cityHead = $(cityName + " <h4>(most recent update: " + dayjs.unix(weatherdata.dt).utcOffset(timezone / 3600).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
         var icon = $('<i><img src=https://openweathermap.org/img/wn/' + weatherdata.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(weatherdata.main.temp) + "&deg;C</p>");
         var description = $("<p>Description: " + weatherdata.weather[0].description + "</p>")
@@ -481,6 +458,7 @@ function renderCityWeather(weatherdata) {
         dashboardDiv.append(newDiv);
     }
 }
+
 // function to display saved cities on screen
 function renderSavedCity(city) {    
     var historyButt = $("<button class='select-history'>" + city + "</button>");
