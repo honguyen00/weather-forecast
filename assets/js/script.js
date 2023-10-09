@@ -435,7 +435,7 @@ function renderCityWeather(weatherdata) {
         var cityHead = $(cityName + " <h4>(" + dayjs.unix(hour.dt).utcOffset(timezone / 3600).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
         var icon = $('<i><img src=https://openweathermap.org/img/wn/' + hour.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(hour.main.temp) + "&deg;C</p>");
-        var wind = $("<p>Wind: " + hour.wind.speed + "km/h" + "</p>");
+        var wind = $("<p>Wind: " + hour.wind.speed + " km/h" + "</p>");
         var humid = $("<p>Humidity: " + hour.main.humidity + "%" + "</p>");
         var description = $("<p>Description: " + hour.weather[0].description + "</p>")
         newDiv.append(cityHead, icon, description, temp, wind, humid);
@@ -452,7 +452,7 @@ function renderCityWeather(weatherdata) {
         var icon = $('<i><img src=https://openweathermap.org/img/wn/' + weatherdata.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(weatherdata.main.temp) + "&deg;C</p>");
         var description = $("<p>Description: " + weatherdata.weather[0].description + "</p>")
-        var wind = $("<p>Wind: " + weatherdata.wind.speed + "km/h" + "</p>");
+        var wind = $("<p>Wind: " + weatherdata.wind.speed + " km/h" + "</p>");
         var humid = $("<p>Humidity: " + weatherdata.main.humidity + "%" + "</p>");
         newDiv.append(cityHead, icon, description, temp, wind, humid);
         dashboardDiv.append(newDiv);
