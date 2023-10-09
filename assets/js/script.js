@@ -326,7 +326,7 @@ function handleSelectedCity(event) {
         searchIndex = $(event.target).parent().index();
         dashboardDiv.empty();
         dashboardDiv.append($("<div class='loader'>"))
-        var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat.toFixed(2) +'&lon=' + searchCities[searchIndex].lon.toFixed(2) + '&appid=' + APIkey + "&units=metric";
+        var forecasturl = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + searchCities[searchIndex].lat.toFixed(2) +'&lon=' + searchCities[searchIndex].lon.toFixed(2) + '&appid=' + APIkey + "&units=metric";
         var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ searchCities[searchIndex].lat.toFixed(2) +"&lon="+ searchCities[searchIndex].lon.toFixed(2) + "&appid=" + APIkey + "&units=metric";
         // store the city to history in local storage
         handleSaveSearchedCity();
@@ -340,7 +340,7 @@ function handleSelectedCity(event) {
         var coordinates = JSON.parse(localStorage.getItem("history"))[historyIndex];
         dashboardDiv.empty();
         dashboardDiv.append($("<div class='loader'>"))
-        var forecasturl = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + coordinates.lat +'&lon=' + coordinates.lon + '&appid=' + APIkey + "&units=metric";
+        var forecasturl = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + coordinates.lat +'&lon=' + coordinates.lon + '&appid=' + APIkey + "&units=metric";
         var currenturl = "https://api.openweathermap.org/data/2.5/weather?lat="+ coordinates.lat +"&lon="+ coordinates.lon + "&appid=" + APIkey + "&units=metric";
         //get the current weather of chosen city
         getWeatherCurrent(currenturl, forecasturl);
@@ -471,7 +471,7 @@ function handleSearchCity(event) {
     var cityName = $('#CityName').val().trim();
     $('#CityName').val("");
     if (cityName !== "" ) {
-        var fetchurl = 'http://api.openweathermap.org/geo/1.0/direct?q=' + cityName + "&limit=5&appid=" + APIkey;
+        var fetchurl = 'https://api.openweathermap.org/geo/1.0/direct?q=' + cityName + "&limit=5&appid=" + APIkey;
         handleSearchCityNames(fetchurl);
     }
 }
