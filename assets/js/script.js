@@ -471,7 +471,7 @@ function handleSearchCity(event) {
     var cityName = $('#CityName').val().trim();
     $('#CityName').val("");
     if (cityName !== "" ) {
-        var fetchurl = 'http://api.openweathermap.org/geo/1.0/direct?q=' + cityName + "&limit=5&appid=" + APIkey;
+        var fetchurl = 'https://api.openweathermap.org/geo/1.0/direct?q=' + cityName + "&limit=5&appid=" + APIkey;
         handleSearchCityNames(fetchurl);
     }
 }
