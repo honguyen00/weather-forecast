@@ -436,18 +436,22 @@ function renderCityWeather(weatherdata) {
             var date = dayjs.unix(weatherdata.list[i].dt).utcOffset(timezone / 3600).date();
             var hour = dayjs.unix(weatherdata.list[i].dt).utcOffset(timezone / 3600).hour();
             var month = dayjs.unix(weatherdata.list[i].dt).utcOffset(timezone / 3600).month();
+            // check for the first index that is a forecast for tommorrow and during midday
             if (date > cityCurrentTime.date() || month > cityCurrentTime.month()) {
                 if (hour >=10 & hour <=13) {
+                    // store the first index that match
                     index = i;
                     break;
                 }
             }
         }
+        // with the new index; add the results every 24hr
         for (index; index < weatherdata.list.length; index+=8) {
                     let newDiv = $("<div class='forecast'>");
                     let cityHead = $(cityName + " <h4>(" + dayjs.unix(weatherdata.list[index].dt).utcOffset(timezone / 3600).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
                     addWeather(flexContainer, newDiv, weatherdata.list[index], cityHead)
         }
+        // if there is not enough results for the last day forecast, display last result
         if (flexContainer.children().length < 5) {
             let newDiv = $("<div class='forecast'>");
             let cityHead = $(cityName + " <h4>(" + dayjs.unix(weatherdata.list[weatherdata.list.length - 1].dt).utcOffset(timezone / 3600).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
@@ -466,6 +470,7 @@ function renderCityWeather(weatherdata) {
     }
 }
 
+// function to add weather result to the existing div
 function addWeather(contain_div, item_div, item, header) {
         var icon = $('<i><img src=https://openweathermap.org/img/wn/' + item.weather[0].icon +'@2x.png' + '></i>')
         var temp = $("<p>Temp: " + Math.floor(item.main.temp) + "&deg;C</p>");
