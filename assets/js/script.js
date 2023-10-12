@@ -265,6 +265,7 @@ var searchCities;
 var searchIndex;
 // store the timezone of the chosen city
 var timezone;
+var cityCurrentTime;
 
 
 $(function() {
@@ -429,34 +430,50 @@ function renderCityWeather(weatherdata) {
     // if the result is from 5 day forecast
     if(weatherdata.list) {
         var cityName = "<h3>" + weatherdata.city.name + "</h3>";
-        var flexContainer = $("<div class='flex-container'>")
-        weatherdata.list.forEach((hour) => {
-        var newDiv = $("<div class='forecast'>");
-        var cityHead = $(cityName + " <h4>(" + dayjs.unix(hour.dt).utcOffset(timezone / 3600).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
-        var icon = $('<i><img src=https://openweathermap.org/img/wn/' + hour.weather[0].icon +'@2x.png' + '></i>')
-        var temp = $("<p>Temp: " + Math.floor(hour.main.temp) + "&deg;C</p>");
-        var wind = $("<p>Wind: " + hour.wind.speed + " km/h" + "</p>");
-        var humid = $("<p>Humidity: " + hour.main.humidity + "%" + "</p>");
-        var description = $("<p>Description: " + hour.weather[0].description + "</p>")
-        newDiv.append(cityHead, icon, description, temp, wind, humid);
-        flexContainer.append(newDiv);
-        }) 
-        dashboardDiv.append($("<h3>5-Day Forecast:</h3>"), flexContainer);
+        var flexContainer = $("<div class='flex-container'>");
+        var index;
+        for (let i = 0; i<weatherdata.list.length; i++) {
+            var date = dayjs.unix(weatherdata.list[i].dt).utcOffset(timezone / 3600).date();
+            var hour = dayjs.unix(weatherdata.list[i].dt).utcOffset(timezone / 3600).hour();
+            var month = dayjs.unix(weatherdata.list[i].dt).utcOffset(timezone / 3600).month();
+            if (date > cityCurrentTime.date() || month > cityCurrentTime.month()) {
+                if (hour >=10 & hour <=13) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        for (index; index < weatherdata.list.length; index+=8) {
+                    let newDiv = $("<div class='forecast'>");
+                    let cityHead = $(cityName + " <h4>(" + dayjs.unix(weatherdata.list[index].dt).utcOffset(timezone / 3600).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
+                    addWeather(flexContainer, newDiv, weatherdata.list[index], cityHead)
+        }
+        if (flexContainer.children().length < 5) {
+            let newDiv = $("<div class='forecast'>");
+            let cityHead = $(cityName + " <h4>(" + dayjs.unix(weatherdata.list[weatherdata.list.length - 1].dt).utcOffset(timezone / 3600).format('D/MM/YYYY, HH:mm:00') + ")" + "</h4>");
+            addWeather(flexContainer, newDiv, weatherdata.list[weatherdata.list.length - 1], cityHead)
+        }
+        dashboardDiv.append($("<h3>5-Day Forecast: <p>(results will be taken around midday for relevance, unless no result around midday for a day are returned)</p></h3>"), flexContainer);
     }
     // if the result is from current forecast
     else {
-        var cityName = "<h3>" + weatherdata.name + "</h3>";
-        var newDiv = $("<div class='present'>");
+        let cityName = "<h3>" + weatherdata.name + "</h3>";
         //use dayjs utc offset together with the saved timezone(offset in seconds so we devide by 3600 to get offset in hours) value to convert time to local time of chosen city
-        var cityHead = $(cityName + " <h4>(most recent update: " + dayjs.unix(weatherdata.dt).utcOffset(timezone / 3600).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
-        var icon = $('<i><img src=https://openweathermap.org/img/wn/' + weatherdata.weather[0].icon +'@2x.png' + '></i>')
-        var temp = $("<p>Temp: " + Math.floor(weatherdata.main.temp) + "&deg;C</p>");
-        var description = $("<p>Description: " + weatherdata.weather[0].description + "</p>")
-        var wind = $("<p>Wind: " + weatherdata.wind.speed + " km/h" + "</p>");
-        var humid = $("<p>Humidity: " + weatherdata.main.humidity + "%" + "</p>");
-        newDiv.append(cityHead, icon, description, temp, wind, humid);
-        dashboardDiv.append(newDiv);
+        cityCurrentTime = dayjs.unix(weatherdata.dt).utcOffset(timezone / 3600);
+        let cityHead = $(cityName + " <h4>(most recent update: " + dayjs.unix(weatherdata.dt).utcOffset(timezone / 3600).format('dddd, D/MM/YYYY, HH:mm:00' + " UTC"+ 'Z') + ")</h4>")
+        let newDiv = $("<div class='present'>");
+        addWeather(dashboardDiv, newDiv, weatherdata, cityHead);
     }
+}
+
+function addWeather(contain_div, item_div, item, header) {
+        var icon = $('<i><img src=https://openweathermap.org/img/wn/' + item.weather[0].icon +'@2x.png' + '></i>')
+        var temp = $("<p>Temp: " + Math.floor(item.main.temp) + "&deg;C</p>");
+        var description = $("<p>Description: " + item.weather[0].description + "</p>")
+        var wind = $("<p>Wind: " + item.wind.speed + " km/h" + "</p>");
+        var humid = $("<p>Humidity: " + item.main.humidity + "%" + "</p>");
+        item_div.append(header, icon, description, temp, wind, humid);
+        contain_div.append(item_div);
 }
 
 // function to display saved cities on screen
